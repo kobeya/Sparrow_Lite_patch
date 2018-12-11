@@ -1,0 +1,1161 @@
+From e4ac847c85deeba6049c480e2c864185b113133a Mon Sep 17 00:00:00 2001
+From: kobey <xiong.yang@3nod.com.cn>
+Date: Tue, 11 Dec 2018 11:03:36 +0800
+Subject: [PATCH] add kd101n89_10.1LCD+AVC_TP add jd9365_10.1LCD from Starry
+ +AVC_TP add TWO LCD is 800*1280
+
+---
+ arch/arm/boot/dts/qcom/Makefile                    |   2 +
+ .../arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dts |  31 +++
+ .../boot/dts/qcom/apq8053-lite-lenovo-v1.4.dtsi    | 206 +++++++++++++++
+ .../arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dts |  27 ++
+ .../boot/dts/qcom/apq8053-lite-lenovo-v1.5.dtsi    | 212 +++++++++++++++
+ .../boot/dts/qcom/dsi-panel-jd9365-800p-video.dtsi | 233 +++++++++++++++++
+ .../dts/qcom/dsi-panel-kd101n89-800p-video.dtsi    | 284 +++++++++++++++++++++
+ arch/arm/boot/dts/qcom/msm8953-mdss-panels.dtsi    |  18 ++
+ drivers/video/msm/mdss/mdss_dsi.c                  |  19 +-
+ 9 files changed, 1026 insertions(+), 6 deletions(-)
+ create mode 100644 arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dts
+ create mode 100644 arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dtsi
+ create mode 100644 arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dts
+ create mode 100644 arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dtsi
+ create mode 100644 arch/arm/boot/dts/qcom/dsi-panel-jd9365-800p-video.dtsi
+ create mode 100644 arch/arm/boot/dts/qcom/dsi-panel-kd101n89-800p-video.dtsi
+
+diff --git a/arch/arm/boot/dts/qcom/Makefile b/arch/arm/boot/dts/qcom/Makefile
+index c66efdc..db7afa5 100644
+--- a/arch/arm/boot/dts/qcom/Makefile
++++ b/arch/arm/boot/dts/qcom/Makefile
+@@ -254,6 +254,8 @@ dtb-$(CONFIG_ARCH_MSM8953) += msm8953-mtp.dtb \
+ 	apq8053-lite-lenovo-v1.1.dtb \
+ 	apq8053-lite-lenovo-v1.2.dtb \
+ 	apq8053-lite-lenovo-v1.3.dtb \
++	apq8053-lite-lenovo-v1.4.dtb \
++	apq8053-lite-lenovo-v1.5.dtb \
+ 	apq8053-lite-harman-v1.0.dtb \
+ 	apq8053-lite-lge-v1.0.dtb \
+ 	apq8053-ext-audio-mtp.dtb \
+diff --git a/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dts b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dts
+new file mode 100644
+index 0000000..6fc9aef
+--- /dev/null
++++ b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dts
+@@ -0,0 +1,31 @@
++/*
++ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "apq8053-lite.dtsi"
++#include "apq8053-lite-lenovo-v1.4.dtsi"
++
++/ {
++	model = "Qualcomm Technologies, Inc. APQ8053 Lite Lenovo v1.4 Board";
++	compatible = "qcom,apq8053-lite-dragonboard", "qcom,apq8053", "qcom,dragonboard";
++	qcom,board-id= <0x01010420 0>;
++};
++
++&blsp2_uart0 {
++	status = "okay";
++};
++
++&mdss_dsi0 {
++        qcom,dsi-pref-prim-pan = <&dsi_kd101n89_800p_video>;
++};
+diff --git a/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dtsi b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dtsi
+new file mode 100644
+index 0000000..eac404f
+--- /dev/null
++++ b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.4.dtsi
+@@ -0,0 +1,206 @@
++/*
++ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "apq8053-lite-dragon.dtsi"
++
++&rpm_bus {
++	rpm-regulator-ldoa10 {
++		status = "okay";
++		pm8953_l10: regulator-l10 {
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			qcom,init-voltage = <3300000>;
++			status = "okay";
++		};
++	};
++};
++
++&i2c_3 {
++	status = "okay";
++	/delete-node/ focaltech@38;
++	gt9xx-i2c@14 {
++		compatible = "goodix,gt9xx";
++		reg = <0x14>;
++		status = "okay";
++		vdd_ana-supply = <&pm8953_l10>;
++		vcc_i2c-supply = <&pm8953_l6>;
++		interrupt-parent = <&tlmm>;
++		interrupts = <65 0x2008>;
++		pinctrl-names = "gdix_ts_int_default", "gdix_ts_int_output_low", "gdix_ts_int_output_high", "gdix_ts_int_input",
++						"gdix_ts_rst_default", "gdix_ts_rst_output_low", "gdix_ts_rst_output_high", "gdix_ts_rst_input";
++		pinctrl-0 = <&ts_int_default>;
++		pinctrl-1 = <&ts_int_output_low>;
++		pinctrl-2 = <&ts_int_output_high>;
++		pinctrl-3 = <&ts_int_input>;
++		pinctrl-4 = <&ts_rst_default>;
++		pinctrl-5 = <&ts_rst_output_low>;
++		pinctrl-6 = <&ts_rst_output_high>;
++		pinctrl-7 = <&ts_rst_input>;
++		reset-gpios = <&tlmm 64 0x00>;
++		irq-gpios = <&tlmm 65 0x2008>;
++		irq-flags = <2>;
++		touchscreen-max-id = <11>;
++		touchscreen-size-x = <800>;
++		touchscreen-size-y = <1280>;
++		touchscreen-max-w = <1024>;
++		touchscreen-max-p = <1024>;
++		goodix,type-a-report = <0>;
++		goodix,driver-send-cfg = <1>;
++		goodix,wakeup-with-reset = <0>;
++		goodix,resume-in-workqueue = <0>;
++		goodix,int-sync = <1>;
++		goodix,swap-x2y = <0>;
++		goodix,esd-protect = <1>;
++		goodix,pen-suppress-finger = <0>;
++		goodix,auto-update = <1>;
++		goodix,auto-update-cfg = <0>;
++		goodix,power-off-sleep = <0>;
++		goodix,cfg-group0 = [
++                       42 20 03 00 05 0A 35 10 22 08 32 0D 50 3C 0A 04
++                       01 01 00 B4 11 11 44 15 19 1B 14 95 35 FF 3A 3C
++                       39 13 00 00 00 98 03 1C 00 00 00 00 03 00 00 00
++                       00 80 0A 37 46 40 E5 52 23 28 00 04 81 38 00 7F
++                       3B 00 7D 3E 00 7C 41 00 7A 44 0C 7A 00 50 33 50
++                       0B 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++                       00 00 00 00 00 00 00 55 00 01 00 00 02 00 00 00
++                       1D 1C 1B 1A 19 18 17 16 15 14 13 12 11 10 0F 0E
++                       0D 0C 0B 0A 09 08 07 06 05 04 03 02 01 00 2A 29
++                       28 27 26 25 24 23 22 21 20 1F 1E 1D 1C 1B 19 18
++                       17 16 15 14 13 12 11 10 0F 0E 0D 0C 0B 0A 09 08
++                       07 06 05 04 03 02 01 00 33 01
++		];
++
++		goodix,cfg-group2 = [
++                       42 20 03 00 05 0A 35 10 22 08 32 0D 50 32 0A 04
++                       01 01 00 B4 11 11 44 2B 31 36 28 95 35 FF 3E 40
++                       39 13 00 00 00 DA 03 1C 00 00 00 00 03 00 00 00
++                       00 80 0A 32 42 40 E5 52 23 28 00 04 7D 33 00 7D
++                       36 00 7E 39 00 7F 3C 00 80 40 0C 80 00 50 33 50
++                       0B 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++                       00 00 00 00 00 00 00 55 00 01 00 00 02 00 00 00
++                       1D 1C 1B 1A 19 18 17 16 15 14 13 12 11 10 0F 0E
++                       0D 0C 0B 0A 09 08 07 06 05 04 03 02 01 00 2A 29
++                       28 27 26 25 24 23 22 21 20 1F 1E 1D 1C 1B 19 18
++                       17 16 15 14 13 12 11 10 0F 0E 0D 0C 0B 0A 09 08
++                       07 06 05 04 03 02 01 00 AD 01
++		];
++	};
++};
++
++&mdss_dsi {
++	hw-config = "single_dsi";
++};
++
++&mdss_dsi0 {
++	qcom,dsi-pref-prim-pan = <&dsi_kd101n89_800p_video>;
++	pinctrl-names = "mdss_default", "mdss_sleep";
++	pinctrl-0 = <&mdss_dsi_active &mdss_te_active &mdss_dsi_gpio>;
++	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend &mdss_dsi_gpio>;
++
++	/delete-property/ vdd-supply;
++	vddio-supply = <&pm8953_l6>;
++	lab-supply = <&lab_regulator>;
++	ibb-supply = <&ibb_regulator>;
++
++	qcom,platform-te-gpio = <&tlmm 24 0>;
++	qcom,platform-reset-gpio = <&tlmm 61 0>;
++	qcom,ext_vdd-gpio = <&tlmm 100 0>;
++	qcom,platform-bklight-en-gpio = <&tlmm 95 0>;
++
++	qcom,platform-lane-config = [00 00 ff 0f
++				00 00 ff 0f
++				00 00 ff 0f
++				00 00 ff 0f
++				00 00 ff 8f];
++};
++&mdss_dsi1 {
++	status = "disabled";
++};
++
++&labibb {
++	status = "ok";
++	qpnp,qpnp-labibb-mode = "lcd";
++};
++
++&wled {
++	qcom,cons-sync-write-delay-us = <1000>;
++	qcom,led-strings-list = [00 01 02 03];
++};
++
++&eeprom0 {
++	gpios = <&tlmm 26 0>,
++		<&tlmm 40 0>,
++		<&tlmm 118 0>,
++		<&tlmm 119 0>,
++		<&tlmm 39 0>;
++	qcom,gpio-vdig = <3>;
++	qcom,gpio-vana = <4>;
++	qcom,gpio-req-tbl-num = <0 1 2 3 4>;
++	qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
++	qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
++			"CAM_RESET0",
++			"CAM_VDIG",
++			"CAM_VANA",
++			"CAM_STANDBY0";
++};
++
++&pm8953_mpps {
++	mpp@a300 {
++		/* MPP4 - CASE_THERM config */
++		qcom,mode = <4>; /* AIN input */
++		qcom,invert = <1>; /* Enable MPP */
++		qcom,ain-route = <3>; /* AMUX 8 */
++		qcom,master-en = <1>;
++		qcom,src-sel = <0>; /* Function constant */
++	};
++};
++
++&pm8953_vadc {
++	chan@13 {
++		label = "case_therm";
++		reg = <0x13>;
++		qcom,decimation = <0>;
++		qcom,pre-div-channel-scaling = <0>;
++		qcom,calibration-type = "ratiometric";
++		qcom,scale-function = <2>;
++		qcom,hw-settle-time = <2>;
++		qcom,fast-avg-setup = <0>;
++		qcom,vadc-thermal-node;
++	};
++};
++
++&camera0 {
++	qcom,mount-angle = <270>;
++	gpios = <&tlmm 26 0>,
++		<&tlmm 40 0>,
++		<&tlmm 39 0>,
++		<&tlmm 118 0>,
++		<&tlmm 119 0>;
++	qcom,gpio-vdig = <3>;
++	qcom,gpio-vana = <4>;
++	qcom,gpio-req-tbl-num = <0 1 2 3 4>;
++	qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
++	qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
++			"CAM_RESET0",
++			"CAM_STANDBY0",
++			"CAM_VDIG",
++			"CAM_VANA";
++};
++
++&camera1 {
++	qcom,mount-angle = <270>;
++};
++
++&camera2{
++	qcom,mount-angle = <270>;
++};
+diff --git a/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dts b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dts
+new file mode 100644
+index 0000000..d382881
+--- /dev/null
++++ b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dts
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "apq8053-lite.dtsi"
++#include "apq8053-lite-lenovo-v1.5.dtsi"
++
++/ {
++	model = "Qualcomm Technologies, Inc. APQ8053 Lite Lenovo v1.5 Board";
++	compatible = "qcom,apq8053-lite-dragonboard", "qcom,apq8053", "qcom,dragonboard";
++	qcom,board-id= <0x01010520 0>;
++};
++
++&blsp2_uart0 {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dtsi b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dtsi
+new file mode 100644
+index 0000000..2d13e18
+--- /dev/null
++++ b/arch/arm/boot/dts/qcom/apq8053-lite-lenovo-v1.5.dtsi
+@@ -0,0 +1,212 @@
++/*
++ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "apq8053-lite-dragon.dtsi"
++
++&rpm_bus {
++	rpm-regulator-ldoa10 {
++		status = "okay";
++		pm8953_l10: regulator-l10 {
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			qcom,init-voltage = <3300000>;
++			status = "okay";
++		};
++	};
++};
++
++&i2c_3 {
++	status = "okay";
++	/delete-node/ focaltech@38;
++	gt9xx-i2c@14 {
++		compatible = "goodix,gt9xx";
++		reg = <0x14>;
++		status = "okay";
++		vdd_ana-supply = <&pm8953_l10>;
++		vcc_i2c-supply = <&pm8953_l6>;
++		interrupt-parent = <&tlmm>;
++		interrupts = <65 0x2008>;
++		pinctrl-names = "gdix_ts_int_default", "gdix_ts_int_output_low", "gdix_ts_int_output_high", "gdix_ts_int_input",
++						"gdix_ts_rst_default", "gdix_ts_rst_output_low", "gdix_ts_rst_output_high", "gdix_ts_rst_input";
++		pinctrl-0 = <&ts_int_default>;
++		pinctrl-1 = <&ts_int_output_low>;
++		pinctrl-2 = <&ts_int_output_high>;
++		pinctrl-3 = <&ts_int_input>;
++		pinctrl-4 = <&ts_rst_default>;
++		pinctrl-5 = <&ts_rst_output_low>;
++		pinctrl-6 = <&ts_rst_output_high>;
++		pinctrl-7 = <&ts_rst_input>;
++
++		reset-gpios = <&tlmm 64 0x00>;
++		irq-gpios = <&tlmm 65 0x2008>;
++		irq-flags = <2>;
++
++		touchscreen-max-id = <11>;
++		touchscreen-size-x = <800>;
++		touchscreen-size-y = <1280>;
++		touchscreen-max-w = <1024>;
++		touchscreen-max-p = <1024>;
++		/*touchscreen-key-map = <172>, <158>;*/ /*KEY_HOMEPAGE=172, KEY_BACK=158，KEY_MENU=139*/
++
++		goodix,type-a-report = <0>;
++		goodix,driver-send-cfg = <1>;
++		goodix,wakeup-with-reset = <0>;
++		goodix,resume-in-workqueue = <0>;
++		goodix,int-sync = <1>;
++		goodix,swap-x2y = <0>;
++		goodix,esd-protect = <1>;
++		goodix,pen-suppress-finger = <0>;
++		goodix,auto-update = <1>;
++		goodix,auto-update-cfg = <0>;
++		goodix,power-off-sleep = <0>;
++
++		goodix,cfg-group0 = [
++                       42 20 03 00 05 0A 35 10 22 08 32 0D 50 3C 0A 04
++                       01 01 00 B4 11 11 44 15 19 1B 14 95 35 FF 3A 3C
++                       39 13 00 00 00 98 03 1C 00 00 00 00 03 00 00 00
++                       00 80 0A 37 46 40 E5 52 23 28 00 04 81 38 00 7F
++                       3B 00 7D 3E 00 7C 41 00 7A 44 0C 7A 00 50 33 50
++                       0B 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++                       00 00 00 00 00 00 00 55 00 01 00 00 02 00 00 00
++                       1D 1C 1B 1A 19 18 17 16 15 14 13 12 11 10 0F 0E
++                       0D 0C 0B 0A 09 08 07 06 05 04 03 02 01 00 2A 29
++                       28 27 26 25 24 23 22 21 20 1F 1E 1D 1C 1B 19 18
++                       17 16 15 14 13 12 11 10 0F 0E 0D 0C 0B 0A 09 08
++                       07 06 05 04 03 02 01 00 33 01
++		];
++
++		goodix,cfg-group2 = [
++                       42 20 03 00 05 0A 35 10 22 08 32 0D 50 32 0A 04
++                       01 01 00 B4 11 11 44 2B 31 36 28 95 35 FF 3E 40
++                       39 13 00 00 00 DA 03 1C 00 00 00 00 03 00 00 00
++                       00 80 0A 32 42 40 E5 52 23 28 00 04 7D 33 00 7D
++                       36 00 7E 39 00 7F 3C 00 80 40 0C 80 00 50 33 50
++                       0B 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++                       00 00 00 00 00 00 00 55 00 01 00 00 02 00 00 00
++                       1D 1C 1B 1A 19 18 17 16 15 14 13 12 11 10 0F 0E
++                       0D 0C 0B 0A 09 08 07 06 05 04 03 02 01 00 2A 29
++                       28 27 26 25 24 23 22 21 20 1F 1E 1D 1C 1B 19 18
++                       17 16 15 14 13 12 11 10 0F 0E 0D 0C 0B 0A 09 08
++                       07 06 05 04 03 02 01 00 AD 01
++		];
++	};
++};
++
++&mdss_dsi {
++	hw-config = "single_dsi";
++};
++
++&mdss_dsi0 {
++	qcom,dsi-pref-prim-pan = <&dsi_jd9365_800p_video>;
++	pinctrl-names = "mdss_default", "mdss_sleep";
++	pinctrl-0 = <&mdss_dsi_active &mdss_te_active &mdss_dsi_gpio>;
++	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend &mdss_dsi_gpio>;
++
++	/delete-property/ vdd-supply;
++	vddio-supply = <&pm8953_l6>;
++	lab-supply = <&lab_regulator>;
++	ibb-supply = <&ibb_regulator>;
++
++	qcom,platform-te-gpio = <&tlmm 24 0>;
++	qcom,platform-reset-gpio = <&tlmm 61 0>;
++	qcom,ext_vdd-gpio = <&tlmm 100 0>;
++	qcom,platform-bklight-en-gpio = <&tlmm 95 0>;
++
++	qcom,platform-lane-config = [00 00 ff 0f
++				00 00 ff 0f
++				00 00 ff 0f
++				00 00 ff 0f
++				00 00 ff 8f];
++};
++
++&mdss_dsi1 {
++	status = "disabled";
++};
++
++&labibb {
++	status = "ok";
++	qpnp,qpnp-labibb-mode = "lcd";
++};
++
++&wled {
++	qcom,cons-sync-write-delay-us = <1000>;
++	qcom,led-strings-list = [00 01 02 03];
++};
++
++&eeprom0 {
++	gpios = <&tlmm 26 0>,
++		<&tlmm 40 0>,
++		<&tlmm 118 0>,
++		<&tlmm 119 0>,
++		<&tlmm 39 0>;
++	qcom,gpio-vdig = <3>;
++	qcom,gpio-vana = <4>;
++	qcom,gpio-req-tbl-num = <0 1 2 3 4>;
++	qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
++	qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
++			"CAM_RESET0",
++			"CAM_VDIG",
++			"CAM_VANA",
++			"CAM_STANDBY0";
++};
++
++&pm8953_mpps {
++	mpp@a300 {
++		/* MPP4 - CASE_THERM config */
++		qcom,mode = <4>; /* AIN input */
++		qcom,invert = <1>; /* Enable MPP */
++		qcom,ain-route = <3>; /* AMUX 8 */
++		qcom,master-en = <1>;
++		qcom,src-sel = <0>; /* Function constant */
++	};
++};
++
++&pm8953_vadc {
++	chan@13 {
++		label = "case_therm";
++		reg = <0x13>;
++		qcom,decimation = <0>;
++		qcom,pre-div-channel-scaling = <0>;
++		qcom,calibration-type = "ratiometric";
++		qcom,scale-function = <2>;
++		qcom,hw-settle-time = <2>;
++		qcom,fast-avg-setup = <0>;
++		qcom,vadc-thermal-node;
++	};
++};
++
++&camera0 {
++	qcom,mount-angle = <270>;
++	gpios = <&tlmm 26 0>,
++		<&tlmm 40 0>,
++		<&tlmm 39 0>,
++		<&tlmm 118 0>,
++		<&tlmm 119 0>;
++	qcom,gpio-vdig = <3>;
++	qcom,gpio-vana = <4>;
++	qcom,gpio-req-tbl-num = <0 1 2 3 4>;
++	qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
++	qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
++			"CAM_RESET0",
++			"CAM_STANDBY0",
++			"CAM_VDIG",
++			"CAM_VANA";
++};
++
++&camera1 {
++	qcom,mount-angle = <270>;
++};
++
++&camera2{
++	qcom,mount-angle = <270>;
++};
+diff --git a/arch/arm/boot/dts/qcom/dsi-panel-jd9365-800p-video.dtsi b/arch/arm/boot/dts/qcom/dsi-panel-jd9365-800p-video.dtsi
+new file mode 100644
+index 0000000..3f42efe
+--- /dev/null
++++ b/arch/arm/boot/dts/qcom/dsi-panel-jd9365-800p-video.dtsi
+@@ -0,0 +1,233 @@
++/* Novatek Android Driver Sample Code for Novatek chipset
++*
++* Copyright (C) 2018 Novatek Microelectronics Corp.
++*
++* This software is licensed under the terms of the GNU General Public
++* License version 2, as published by the Free Software Foundation, and
++* may be copied, distributed, and modified under those terms.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++*/
++
++&mdss_mdp {
++        dsi_jd9365_800p_video: qcom,mdss_dsi_jd9365_800p_video {
++		qcom,mdss-dsi-panel-name = "JD9365 800P MDSS DSI";
++		qcom,mdss-dsi-panel-controller = <&mdss_dsi0>;
++		qcom,mdss-dsi-panel-type = "dsi_video_mode";
++		qcom,mdss-dsi-panel-framerate = <60>;
++		qcom,mdss-dsi-virtual-channel-id = <0>;
++		qcom,mdss-dsi-stream = <0>;
++		qcom,mdss-dsi-panel-width = <800>;
++		qcom,mdss-dsi-panel-height = <1280>;
++		qcom,mdss-dsi-h-front-porch = <18>;
++		qcom,mdss-dsi-h-back-porch = <18>;
++		qcom,mdss-dsi-h-pulse-width = <18>;
++		qcom,mdss-dsi-h-sync-skew = <0>;
++		qcom,mdss-dsi-v-back-porch = <4>;
++		qcom,mdss-dsi-v-front-porch = <16>;
++		qcom,mdss-dsi-v-pulse-width = <4>;
++		qcom,mdss-dsi-h-left-border = <0>;
++		qcom,mdss-dsi-h-right-border = <0>;
++		qcom,mdss-dsi-v-top-border = <0>;
++		qcom,mdss-dsi-v-bottom-border = <0>;
++		qcom,mdss-dsi-bpp = <24>;
++		qcom,mdss-dsi-underflow-color = <0xff>;
++		qcom,mdss-dsi-border-color = <0>;
++		qcom,mdss-dsi-on-command = [
++                        15 01 00 00 00 00 02 E0 00
++                        15 01 00 00 00 00 02 E1 93
++                        15 01 00 00 00 00 02 E2 65
++                        15 01 00 00 00 00 02 E3 F8
++                        15 01 00 00 00 00 02 80 03
++                        15 01 00 00 00 00 02 E0 01
++                        15 01 00 00 00 00 02 17 00
++                        15 01 00 00 00 00 02 18 AF
++                        15 01 00 00 00 00 02 19 01
++                        15 01 00 00 00 00 02 1A 00
++                        15 01 00 00 00 00 02 1B AF
++                        15 01 00 00 00 00 02 1C 01
++                        15 01 00 00 00 00 02 1F 3E
++                        15 01 00 00 00 00 02 20 28
++                        15 01 00 00 00 00 02 21 28
++                        15 01 00 00 00 00 02 22 7E
++                        15 01 00 00 00 00 02 35 26
++                        15 01 00 00 00 00 02 37 09
++                        15 01 00 00 00 00 02 38 04
++                        15 01 00 00 00 00 02 39 00
++                        15 01 00 00 00 00 02 3A 01
++                        15 01 00 00 00 00 02 3C 7C
++                        15 01 00 00 00 00 02 3D FF
++                        15 01 00 00 00 00 02 3E FF
++                        15 01 00 00 00 00 02 3F 7F
++                        15 01 00 00 00 00 02 40 06
++                        15 01 00 00 00 00 02 41 A0
++                        15 01 00 00 00 00 02 42 81
++                        15 01 00 00 00 00 02 43 08
++                        15 01 00 00 00 00 02 44 0B
++                        15 01 00 00 00 00 02 45 28
++                        15 01 00 00 00 00 02 55 0F
++                        15 01 00 00 00 00 02 57 69
++                        15 01 00 00 00 00 02 59 0A
++                        15 01 00 00 00 00 02 5A 28
++                        15 01 00 00 00 00 02 5B 14
++                        15 01 00 00 00 00 02 5D 7C
++                        15 01 00 00 00 00 02 5E 65
++                        15 01 00 00 00 00 02 5F 55
++                        15 01 00 00 00 00 02 60 47
++                        15 01 00 00 00 00 02 61 43
++                        15 01 00 00 00 00 02 62 32
++                        15 01 00 00 00 00 02 63 34
++                        15 01 00 00 00 00 02 64 1C
++                        15 01 00 00 00 00 02 65 33
++                        15 01 00 00 00 00 02 66 31
++                        15 01 00 00 00 00 02 67 30
++                        15 01 00 00 00 00 02 68 4E
++                        15 01 00 00 00 00 02 69 3C
++                        15 01 00 00 00 00 02 6A 44
++                        15 01 00 00 00 00 02 6B 35
++                        15 01 00 00 00 00 02 6C 31
++                        15 01 00 00 00 00 02 6D 23
++                        15 01 00 00 00 00 02 6E 11
++                        15 01 00 00 00 00 02 6F 00
++                        15 01 00 00 00 00 02 70 7C
++                        15 01 00 00 00 00 02 71 65
++                        15 01 00 00 00 00 02 72 55
++                        15 01 00 00 00 00 02 73 47
++                        15 01 00 00 00 00 02 74 43
++                        15 01 00 00 00 00 02 75 32
++                        15 01 00 00 00 00 02 76 34
++                        15 01 00 00 00 00 02 77 1C
++                        15 01 00 00 00 00 02 78 33
++                        15 01 00 00 00 00 02 79 31
++                        15 01 00 00 00 00 02 7A 30
++                        15 01 00 00 00 00 02 7B 4E
++                        15 01 00 00 00 00 02 7C 3C
++                        15 01 00 00 00 00 02 7D 44
++                        15 01 00 00 00 00 02 7E 35
++                        15 01 00 00 00 00 02 7F 31
++                        15 01 00 00 00 00 02 80 23
++                        15 01 00 00 00 00 02 81 11
++                        15 01 00 00 00 00 02 82 00
++                        15 01 00 00 00 00 02 E0 02
++                        15 01 00 00 00 00 02 00 1E
++                        15 01 00 00 00 00 02 01 1E
++                        15 01 00 00 00 00 02 02 41
++                        15 01 00 00 00 00 02 03 41
++                        15 01 00 00 00 00 02 04 43
++                        15 01 00 00 00 00 02 05 43
++                        15 01 00 00 00 00 02 06 1F
++                        15 01 00 00 00 00 02 07 1F
++                        15 01 00 00 00 00 02 08 35
++                        15 01 00 00 00 00 02 09 1F
++                        15 01 00 00 00 00 02 0A 15
++                        15 01 00 00 00 00 02 0B 15
++                        15 01 00 00 00 00 02 0C 1F
++                        15 01 00 00 00 00 02 0D 47
++                        15 01 00 00 00 00 02 0E 47
++                        15 01 00 00 00 00 02 0F 45
++                        15 01 00 00 00 00 02 10 45
++                        15 01 00 00 00 00 02 11 4B
++                        15 01 00 00 00 00 02 12 4B
++                        15 01 00 00 00 00 02 13 49
++                        15 01 00 00 00 00 02 14 49
++                        15 01 00 00 00 00 02 15 1F
++                        15 01 00 00 00 00 02 16 1E
++                        15 01 00 00 00 00 02 17 1E
++                        15 01 00 00 00 00 02 18 40
++                        15 01 00 00 00 00 02 19 40
++                        15 01 00 00 00 00 02 1A 42
++                        15 01 00 00 00 00 02 1B 42
++                        15 01 00 00 00 00 02 1C 1F
++                        15 01 00 00 00 00 02 1D 1F
++                        15 01 00 00 00 00 02 1E 35
++                        15 01 00 00 00 00 02 1F 1F
++                        15 01 00 00 00 00 02 20 15
++                        15 01 00 00 00 00 02 21 15
++                        15 01 00 00 00 00 02 22 1f
++                        15 01 00 00 00 00 02 23 46
++                        15 01 00 00 00 00 02 24 46
++                        15 01 00 00 00 00 02 25 44
++                        15 01 00 00 00 00 02 26 44
++                        15 01 00 00 00 00 02 27 4A
++                        15 01 00 00 00 00 02 28 4A
++                        15 01 00 00 00 00 02 29 48
++                        15 01 00 00 00 00 02 2A 48
++                        15 01 00 00 00 00 02 2B 1F
++                        15 01 00 00 00 00 02 58 40
++                        15 01 00 00 00 00 02 5B 30
++                        15 01 00 00 00 00 02 5C 03
++                        15 01 00 00 00 00 02 5D 30
++                        15 01 00 00 00 00 02 5E 01
++                        15 01 00 00 00 00 02 5F 02
++                        15 01 00 00 00 00 02 63 14
++                        15 01 00 00 00 00 02 64 6A
++                        15 01 00 00 00 00 02 67 73
++                        15 01 00 00 00 00 02 68 05
++                        15 01 00 00 00 00 02 69 14
++                        15 01 00 00 00 00 02 6A 6A
++                        15 01 00 00 00 00 02 6B 08
++                        15 01 00 00 00 00 02 6C 00
++                        15 01 00 00 00 00 02 6D 00
++                        15 01 00 00 00 00 02 6E 00
++                        15 01 00 00 00 00 02 6F 88
++                        15 01 00 00 00 00 02 77 DD
++                        15 01 00 00 00 00 02 79 0E
++                        15 01 00 00 00 00 02 7A 03
++                        15 01 00 00 00 00 02 7D 14
++                        15 01 00 00 00 00 02 7E 6A
++                        15 01 00 00 00 00 02 E0 04
++                        15 01 00 00 00 00 02 09 11
++                        15 01 00 00 00 00 02 0E 48
++                        15 01 00 00 00 00 02 2B 2B
++                        15 01 00 00 00 00 02 2D 03
++                        15 01 00 00 00 00 02 2E 44
++                        15 01 00 00 00 00 02 E0 00
++                        15 01 00 00 00 00 02 E6 02
++                        15 01 00 00 00 00 02 E7 0C
++                        05 01 00 00 78 00 01 11
++                        05 01 00 00 05 00 01 29
++                        15 01 00 00 00 00 02 35 00
++		];
++		qcom,mdss-dsi-off-command = [
++			23 01 00 00 00 00 02 83 00
++			23 01 00 00 78 00 02 84 00
++			05 01 00 00 78 00 02 10 00
++		];
++		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
++		qcom,mdss-dsi-off-command-state = "dsi_lp_mode";
++		//qcom,cont-splash-enabled;
++		qcom,mdss-dsi-h-sync-pulse = <1>;
++		qcom,mdss-dsi-traffic-mode = "burst_mode";
++		qcom,mdss-dsi-lane-map = "lane_map_0123";
++		qcom,mdss-dsi-bllp-eof-power-mode;
++		qcom,mdss-dsi-bllp-power-mode;
++		qcom,mdss-dsi-lane-0-state;
++		qcom,mdss-dsi-lane-1-state;
++		qcom,mdss-dsi-lane-2-state;
++		qcom,mdss-dsi-lane-3-state;
++		qcom,mdss-dsi-panel-timings = [f2 3a 28 00 6c 70 2c 3e 2e 03 04 00];
++		qcom,mdss-dsi-t-clk-post = <0x0e>;
++		qcom,mdss-dsi-t-clk-pre = <0x33>;
++		qcom,mdss-dsi-bl-min-level = <1>;
++		qcom,mdss-dsi-bl-max-level = <4095>;
++		qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
++		qcom,mdss-dsi-dma-trigger = "trigger_sw";
++		qcom,mdss-dsi-mdp-trigger = "none";
++		qcom,mdss-dsi-force-clock-lane-hs;
++		//qcom,platform-bklight-en-gpio = <&tlmm 46 0>;
++		//qcom,mdss-dsi-lcden-ctrl = <&tlmm 61 0>;
++		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
++		//qcom,mdss-dsi-bl-pmic-pwm-frequency = <100>;
++		//qcom,mdss-dsi-bl-pmic-bank-select = <0>;
++		//qcom,mdss-dsi-pwm-gpio = <&pm8953_mpps 4 0>;
++		qcom,mdss-pan-physical-width-dimension = <135>;
++		qcom,mdss-pan-physical-height-dimension = <216>;
++		//qcom,mdss-dsi-reset-sequence = <1 10>, <0 5>, <1 50>;
++		qcom,mdss-dsi-lp11-init;
++		qcom,mdss-dsi-post-init-delay = <1>;
++	};
++};
+diff --git a/arch/arm/boot/dts/qcom/dsi-panel-kd101n89-800p-video.dtsi b/arch/arm/boot/dts/qcom/dsi-panel-kd101n89-800p-video.dtsi
+new file mode 100644
+index 0000000..e90e658
+--- /dev/null
++++ b/arch/arm/boot/dts/qcom/dsi-panel-kd101n89-800p-video.dtsi
+@@ -0,0 +1,284 @@
++/* Novatek Android Driver Sample Code for Novatek chipset
++*
++* Copyright (C) 2018 Novatek Microelectronics Corp.
++*
++* This software is licensed under the terms of the GNU General Public
++* License version 2, as published by the Free Software Foundation, and
++* may be copied, distributed, and modified under those terms.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++*/
++
++&mdss_mdp {
++        dsi_kd101n89_800p_video: qcom,mdss_dsi_kd101n89_800p_video {
++		qcom,mdss-dsi-panel-name = "kd101n89 IC:jd9365 mdss dsi";
++		qcom,mdss-dsi-panel-controller = <&mdss_dsi0>;
++		qcom,mdss-dsi-panel-type = "dsi_video_mode";
++		qcom,mdss-dsi-panel-framerate = <60>;
++		qcom,mdss-dsi-virtual-channel-id = <0>;
++		qcom,mdss-dsi-stream = <0>;
++		qcom,mdss-dsi-panel-width = <800>;
++		qcom,mdss-dsi-panel-height = <1280>;
++		qcom,mdss-dsi-h-front-porch = <18>;
++		qcom,mdss-dsi-h-back-porch = <18>;
++		qcom,mdss-dsi-h-pulse-width = <18>;
++		qcom,mdss-dsi-h-sync-skew = <0>;
++		qcom,mdss-dsi-v-back-porch = <4>;
++		qcom,mdss-dsi-v-front-porch = <16>;
++		qcom,mdss-dsi-v-pulse-width = <4>;
++		qcom,mdss-dsi-h-left-border = <0>;
++		qcom,mdss-dsi-h-right-border = <0>;
++		qcom,mdss-dsi-v-top-border = <0>;
++		qcom,mdss-dsi-v-bottom-border = <0>;
++		qcom,mdss-dsi-bpp = <24>;
++		qcom,mdss-dsi-underflow-color = <0xff>;
++		qcom,mdss-dsi-border-color = <0>;
++		qcom,mdss-dsi-on-command = [
++			15 01 00 00 00 00 02 E0 00
++			15 01 00 00 00 00 02 E1 93
++			15 01 00 00 00 00 02 E2 65
++			15 01 00 00 00 00 02 E3 F8
++			15 01 00 00 00 00 02 80 03
++			15 01 00 00 00 00 02 E0 01
++			15 01 00 00 00 00 02 01 67
++			15 01 00 00 00 00 02 17 00
++			15 01 00 00 00 00 02 18 BF
++			15 01 00 00 00 00 02 19 01
++			15 01 00 00 00 00 02 1A 00
++			15 01 00 00 00 00 02 1B BF
++			15 01 00 00 00 00 02 1C 01
++			15 01 00 00 00 00 02 1F 70
++			15 01 00 00 00 00 02 20 2D
++			15 01 00 00 00 00 02 21 2D
++			15 01 00 00 00 00 02 22 7E
++			15 01 00 00 00 00 02 35 28
++			15 01 00 00 00 00 02 37 19
++			15 01 00 00 00 00 02 38 05
++			15 01 00 00 00 00 02 39 00
++			15 01 00 00 00 00 02 3A 01
++			15 01 00 00 00 00 02 3C 7C
++			15 01 00 00 00 00 02 3D FF
++			15 01 00 00 00 00 02 3E FF
++			15 01 00 00 00 00 02 3F 7F
++			15 01 00 00 00 00 02 40 06
++			15 01 00 00 00 00 02 41 A0
++			15 01 00 00 00 00 02 43 1E
++			15 01 00 00 00 00 02 44 0B
++			15 01 00 00 00 00 02 45 28
++			15 01 00 00 00 00 02 55 01
++			15 01 00 00 00 00 02 56 01
++			15 01 00 00 00 00 02 57 69
++			15 01 00 00 00 00 02 58 0A
++			15 01 00 00 00 00 02 59 2A
++			15 01 00 00 00 00 02 5A 29
++			15 01 00 00 00 00 02 5B 15
++			15 01 00 00 00 00 02 5C 16
++			15 01 00 00 00 00 02 5D 7F
++			15 01 00 00 00 00 02 5E 64
++			15 01 00 00 00 00 02 5F 53
++			15 01 00 00 00 00 02 60 47
++			15 01 00 00 00 00 02 61 43
++			15 01 00 00 00 00 02 62 33
++			15 01 00 00 00 00 02 63 37
++			15 01 00 00 00 00 02 64 21
++			15 01 00 00 00 00 02 65 39
++			15 01 00 00 00 00 02 66 37
++			15 01 00 00 00 00 02 67 34
++			15 01 00 00 00 00 02 68 50
++			15 01 00 00 00 00 02 69 3D
++			15 01 00 00 00 00 02 6A 44
++			15 01 00 00 00 00 02 6B 36
++			15 01 00 00 00 00 02 6C 34
++			15 01 00 00 00 00 02 6D 25
++			15 01 00 00 00 00 02 6E 15
++			15 01 00 00 00 00 02 6F 02
++			15 01 00 00 00 00 02 70 7F
++			15 01 00 00 00 00 02 71 64
++			15 01 00 00 00 00 02 72 53
++			15 01 00 00 00 00 02 73 47
++			15 01 00 00 00 00 02 74 43
++			15 01 00 00 00 00 02 75 33
++			15 01 00 00 00 00 02 76 37
++			15 01 00 00 00 00 02 77 21
++			15 01 00 00 00 00 02 78 39
++			15 01 00 00 00 00 02 79 37
++			15 01 00 00 00 00 02 7A 34
++			15 01 00 00 00 00 02 7B 50
++			15 01 00 00 00 00 02 7C 3D
++			15 01 00 00 00 00 02 7D 44
++			15 01 00 00 00 00 02 7E 36
++			15 01 00 00 00 00 02 7F 34
++			15 01 00 00 00 00 02 80 25
++			15 01 00 00 00 00 02 81 15
++			15 01 00 00 00 00 02 82 02
++			15 01 00 00 00 00 02 E0 02
++			15 01 00 00 00 00 02 00 52
++			15 01 00 00 00 00 02 01 55
++			15 01 00 00 00 00 02 02 55
++			15 01 00 00 00 00 02 03 50
++			15 01 00 00 00 00 02 04 77
++			15 01 00 00 00 00 02 05 57
++			15 01 00 00 00 00 02 06 55
++			15 01 00 00 00 00 02 07 4E
++			15 01 00 00 00 00 02 08 4C
++			15 01 00 00 00 00 02 09 5F
++			15 01 00 00 00 00 02 0A 4A
++			15 01 00 00 00 00 02 0B 48
++			15 01 00 00 00 00 02 0C 55
++			15 01 00 00 00 00 02 0D 46
++			15 01 00 00 00 00 02 0E 44
++			15 01 00 00 00 00 02 0F 40
++			15 01 00 00 00 00 02 10 55
++			15 01 00 00 00 00 02 11 55
++			15 01 00 00 00 00 02 12 55
++			15 01 00 00 00 00 02 13 55
++			15 01 00 00 00 00 02 14 55
++			15 01 00 00 00 00 02 15 55
++			15 01 00 00 00 00 02 16 53
++			15 01 00 00 00 00 02 17 55
++			15 01 00 00 00 00 02 18 55
++			15 01 00 00 00 00 02 19 51
++			15 01 00 00 00 00 02 1A 77
++			15 01 00 00 00 00 02 1B 57
++			15 01 00 00 00 00 02 1C 55
++			15 01 00 00 00 00 02 1D 4F
++			15 01 00 00 00 00 02 1E 4D
++			15 01 00 00 00 00 02 1F 5F
++			15 01 00 00 00 00 02 20 4B
++			15 01 00 00 00 00 02 21 49
++			15 01 00 00 00 00 02 22 55
++			15 01 00 00 00 00 02 23 47
++			15 01 00 00 00 00 02 24 45
++			15 01 00 00 00 00 02 25 41
++			15 01 00 00 00 00 02 26 55
++			15 01 00 00 00 00 02 27 55
++			15 01 00 00 00 00 02 28 55
++			15 01 00 00 00 00 02 29 55
++			15 01 00 00 00 00 02 2A 55
++			15 01 00 00 00 00 02 2B 55
++			15 01 00 00 00 00 02 2C 13
++			15 01 00 00 00 00 02 2D 15
++			15 01 00 00 00 00 02 2E 15
++			15 01 00 00 00 00 02 2F 01
++			15 01 00 00 00 00 02 30 37
++			15 01 00 00 00 00 02 31 17
++			15 01 00 00 00 00 02 32 15
++			15 01 00 00 00 00 02 33 0D
++			15 01 00 00 00 00 02 34 0F
++			15 01 00 00 00 00 02 35 15
++			15 01 00 00 00 00 02 36 05
++			15 01 00 00 00 00 02 37 07
++			15 01 00 00 00 00 02 38 15
++			15 01 00 00 00 00 02 39 09
++			15 01 00 00 00 00 02 3A 0B
++			15 01 00 00 00 00 02 3B 11
++			15 01 00 00 00 00 02 3C 15
++			15 01 00 00 00 00 02 3D 15
++			15 01 00 00 00 00 02 3E 15
++			15 01 00 00 00 00 02 3F 15
++			15 01 00 00 00 00 02 40 15
++			15 01 00 00 00 00 02 41 15
++			15 01 00 00 00 00 02 42 12
++			15 01 00 00 00 00 02 43 15
++			15 01 00 00 00 00 02 44 15
++			15 01 00 00 00 00 02 45 00
++			15 01 00 00 00 00 02 46 37
++			15 01 00 00 00 00 02 47 17
++			15 01 00 00 00 00 02 48 15
++			15 01 00 00 00 00 02 49 0C
++			15 01 00 00 00 00 02 4A 0E
++			15 01 00 00 00 00 02 4B 15
++			15 01 00 00 00 00 02 4C 04
++			15 01 00 00 00 00 02 4D 06
++			15 01 00 00 00 00 02 4E 15
++			15 01 00 00 00 00 02 4F 08
++			15 01 00 00 00 00 02 50 0A
++			15 01 00 00 00 00 02 51 10
++			15 01 00 00 00 00 02 52 15
++			15 01 00 00 00 00 02 53 15
++			15 01 00 00 00 00 02 54 15
++			15 01 00 00 00 00 02 55 15
++			15 01 00 00 00 00 02 56 15
++			15 01 00 00 00 00 02 57 15
++			15 01 00 00 00 00 02 58 40
++			15 01 00 00 00 00 02 5B 10
++			15 01 00 00 00 00 02 5C 06
++			15 01 00 00 00 00 02 5D 40
++			15 01 00 00 00 00 02 5E 00
++			15 01 00 00 00 00 02 5F 00
++			15 01 00 00 00 00 02 60 40
++			15 01 00 00 00 00 02 61 03
++			15 01 00 00 00 00 02 62 04
++			15 01 00 00 00 00 02 63 6C
++			15 01 00 00 00 00 02 64 6C
++			15 01 00 00 00 00 02 65 75
++			15 01 00 00 00 00 02 66 08
++			15 01 00 00 00 00 02 67 B4
++			15 01 00 00 00 00 02 68 08
++			15 01 00 00 00 00 02 69 6C
++			15 01 00 00 00 00 02 6A 6C
++			15 01 00 00 00 00 02 6B 0C
++			15 01 00 00 00 00 02 6D 00
++			15 01 00 00 00 00 02 6E 00
++			15 01 00 00 00 00 02 6F 88
++			15 01 00 00 00 00 02 75 BB
++			15 01 00 00 00 00 02 76 00
++			15 01 00 00 00 00 02 77 05
++			15 01 00 00 00 00 02 78 2A
++			15 01 00 00 00 00 02 E0 04
++			15 01 00 00 00 00 02 09 11
++			15 01 00 00 00 00 02 0E 48
++			15 01 00 00 00 00 02 2B 2B
++			15 01 00 00 00 00 02 2D 03
++			15 01 00 00 00 00 02 2E 44
++			15 01 00 00 00 00 02 E0 05
++			15 01 00 00 00 00 02 12 72
++			15 01 00 00 00 00 02 E0 00
++			15 01 00 00 00 00 02 E6 02
++			15 01 00 00 00 00 02 E7 0C
++			05 01 00 00 78 00 01 11
++			05 01 00 00 05 00 01 29
++		];
++		qcom,mdss-dsi-off-command = [
++			23 01 00 00 00 00 02 83 00
++			23 01 00 00 78 00 02 84 00
++			05 01 00 00 78 00 02 10 00
++		];
++		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
++		qcom,mdss-dsi-off-command-state = "dsi_lp_mode";
++		//qcom,cont-splash-enabled;
++		qcom,mdss-dsi-h-sync-pulse = <1>;
++		qcom,mdss-dsi-traffic-mode = "burst_mode";
++		qcom,mdss-dsi-lane-map = "lane_map_0123";
++		qcom,mdss-dsi-bllp-eof-power-mode;
++		qcom,mdss-dsi-bllp-power-mode;
++		qcom,mdss-dsi-lane-0-state;
++		qcom,mdss-dsi-lane-1-state;
++		qcom,mdss-dsi-lane-2-state;
++		qcom,mdss-dsi-lane-3-state;
++		qcom,mdss-dsi-panel-timings = [f2 3a 28 00 6c 70 2c 3e 2e 03 04 00];
++		qcom,mdss-dsi-t-clk-post = <0x0e>;
++		qcom,mdss-dsi-t-clk-pre = <0x33>;
++		qcom,mdss-dsi-bl-min-level = <1>;
++		qcom,mdss-dsi-bl-max-level = <4095>;
++		qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
++		qcom,mdss-dsi-dma-trigger = "trigger_sw";
++		qcom,mdss-dsi-mdp-trigger = "none";
++		qcom,mdss-dsi-force-clock-lane-hs;
++		//qcom,platform-bklight-en-gpio = <&tlmm 46 0>;
++		//qcom,mdss-dsi-lcden-ctrl = <&tlmm 61 0>;
++		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
++		//qcom,mdss-dsi-bl-pmic-pwm-frequency = <100>;
++		//qcom,mdss-dsi-bl-pmic-bank-select = <0>;
++		//qcom,mdss-dsi-pwm-gpio = <&pm8953_mpps 4 0>;
++		qcom,mdss-pan-physical-width-dimension = <135>;
++		qcom,mdss-pan-physical-height-dimension = <216>;
++		//qcom,mdss-dsi-reset-sequence = <1 10>, <0 5>, <1 50>;
++		qcom,mdss-dsi-lp11-init;
++		qcom,mdss-dsi-post-init-delay = <1>;
++	};
++};
+diff --git a/arch/arm/boot/dts/qcom/msm8953-mdss-panels.dtsi b/arch/arm/boot/dts/qcom/msm8953-mdss-panels.dtsi
+index 42a8390..af0a278 100644
+--- a/arch/arm/boot/dts/qcom/msm8953-mdss-panels.dtsi
++++ b/arch/arm/boot/dts/qcom/msm8953-mdss-panels.dtsi
+@@ -27,6 +27,8 @@
+ #include "dsi-panel-hx83100a-800p-video.dtsi"
+ #include "dsi-panel-boent51021-1200p-video.dtsi"
+ #include "dsi-panel-inxnt51021-1200p-video.dtsi"
++#include "dsi-panel-kd101n89-800p-video.dtsi"
++#include "dsi-panel-jd9365-800p-video.dtsi"
+ 
+ &soc {
+ 	dsi_panel_pwr_supply: dsi_panel_pwr_supply {
+@@ -160,3 +162,19 @@
+ 		25 1D 08 0A 06 03 04 a0];
+ };
+ 
++&dsi_kd101n89_800p_video {
++        qcom,mdss-dsi-panel-timings-phy-v2 = [1f 1c 05 06 03 03 04 a0
++                1f 1c 05 06 03 03 04 a0
++                1f 1c 05 06 03 03 04 a0
++                1f 1c 05 06 03 03 04 a0
++                1f 10 05 06 03 03 04 a0];
++};
++
++&dsi_jd9365_800p_video {
++        qcom,mdss-dsi-panel-timings-phy-v2 = [1f 1c 05 06 03 03 04 a0
++                1f 1c 05 06 03 03 04 a0
++                1f 1c 05 06 03 03 04 a0
++                1f 1c 05 06 03 03 04 a0
++                1f 10 05 06 03 03 04 a0];
++};
++
+diff --git a/drivers/video/msm/mdss/mdss_dsi.c b/drivers/video/msm/mdss/mdss_dsi.c
+index b916aca..25b7391 100644
+--- a/drivers/video/msm/mdss/mdss_dsi.c
++++ b/drivers/video/msm/mdss/mdss_dsi.c
+@@ -2969,7 +2969,7 @@ static int create_cdt_file(struct platform_device *pdev)
+ 
+ 	return 0;
+ }
+-
++/*add kd101n89_LCD & jd9365_LCD ID Distinguish*/
+ #define LCDID_PROC_FILE "lcdid"
+ #define GPIO_LCD_LDO	100
+ #define GPIO_LCD_ID0	140
+@@ -3018,7 +3018,9 @@ static struct device_node *mdss_dsi_config_panel(struct platform_device *pdev,
+ 	char panel_cfg[MDSS_MAX_PANEL_LEN];
+ 	struct device_node *dsi_pan_node = NULL;
+ 	int rc = 0;
+-
++	int ret = 0;
++	int ret1 = 0;
++	int ret2 = 0;
+ 	if (!ctrl_pdata) {
+ 		pr_err("%s: Unable to get the ctrl_pdata\n", __func__);
+ 		return NULL;
+@@ -3030,7 +3032,10 @@ static struct device_node *mdss_dsi_config_panel(struct platform_device *pdev,
+ 		/* dsi panel cfg not present */
+ 		pr_warn("%s:%d:dsi specific cfg not present\n",
+ 			__func__, __LINE__);
+-
++	ret = gpio_request(GPIO_LCD_LDO, "GPIO_LCD_LDO");
++	ret1 = gpio_request(GPIO_LCD_ID0, "GPIO_LCD_ID0");
++	ret2 = gpio_request(GPIO_LCD_ID1, "GPIO_LCD_ID1");
++	pr_err("GPIO_LCD_LD0&ID0&ID1 IS READY NOW\n");
+ 	gpio_direction_output(GPIO_LCD_LDO, 1);
+ 	msleep(10);
+ 	gpio_direction_input(GPIO_LCD_ID0);
+@@ -3043,9 +3048,9 @@ static struct device_node *mdss_dsi_config_panel(struct platform_device *pdev,
+ 	gpio_direction_output(GPIO_LCD_LDO, 0);
+ 	if(status1 == 1) {
+ 		if (status0 == 1) {
+-			strcpy(panel_cfg, "0:qcom,mdss_dsi_boent51021_1200p_video:1:none:cfg:single_dsi");
++			strcpy(panel_cfg, "0:qcom,mdss_dsi_jd9365_800p_video:1:none:cfg:single_dsi");
+ 		} else {
+-			strcpy(panel_cfg, "0:qcom,mdss_dsi_inxnt51021_1200p_video:1:none:cfg:single_dsi");
++			strcpy(panel_cfg, "0:qcom,mdss_dsi_kd101n89_800p_video:1:none:cfg:single_dsi");
+ 		}
+ 	}
+ 	else {
+@@ -3066,7 +3071,9 @@ static struct device_node *mdss_dsi_config_panel(struct platform_device *pdev,
+ 		of_node_put(dsi_pan_node);
+ 		return NULL;
+ 	}
+-
++	gpio_free(GPIO_LCD_LDO);
++	gpio_free(GPIO_LCD_ID0);
++	gpio_free(GPIO_LCD_ID1);
+ 	return dsi_pan_node;
+ }
+ 
+-- 
+1.9.1
+
