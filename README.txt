@@ -19,12 +19,12 @@ CORE change list:
 LCD Compatibility:sparrow/hardware/bsp/kernel/qcom/qcom-msm8x53-v3.18/drivers/video/msm/mdss/mdss_dsi.c +2973
 
 	KD101N89_LCD:gpio140_value=0
-		     gpio141_value=1
+		     gpio141_value=0
 	
-	JD9365_LCD:  gpio140_value=1
+	JD9365_LCD:  gpio140_value=0
 		     gpio141_value=1
 
 	②ADD 4E8_camera （IC：s5k4e8）
 		1.bring up camera
-		2.OTP still not good,require vendor identification	
+		2.camera is tuning by Samsung company right now	
 
